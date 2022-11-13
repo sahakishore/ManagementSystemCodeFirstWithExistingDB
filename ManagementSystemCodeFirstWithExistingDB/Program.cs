@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Runtime.Remoting.Contexts;
 using System.Text;
@@ -43,10 +44,13 @@ namespace ManagementSystemCodeFirstWithExistingDB
 
             //creating new Employee
             //CreateNewEmployee();
-            
+
+
+            //Update Existing Employee
+            UpdateExistingEmployee();
 
             //calling GetEmployeeById method
-            string empDetails = GetEmployeeById( 7, "");
+            string empDetails = GetEmployeeById( 8, "");
             Console.WriteLine("Employee details:" + empDetails);
 
 
@@ -79,9 +83,15 @@ namespace ManagementSystemCodeFirstWithExistingDB
                 where c.EmployeeId == empId
                 select c;*/
 
+            /* var employee =
+                 context.Employees
+                 .SingleOrDefault(a => a.EmployeeId == empId);
+            */
+
             var employee =
-                context.Employees
-                .SingleOrDefault(a => a.EmployeeId == empId);
+               context.Employees
+               .Include(c => c.EmployeeDetail)
+               .SingleOrDefault(e => e.EmployeeId == empId);
 
 
             //foreach (var e in employee)
@@ -91,7 +101,7 @@ namespace ManagementSystemCodeFirstWithExistingDB
             //    empName = e.Name;
             //}
 
-            //Console.WriteLine("VVV Employee details Name:{0}   Email: {1}" + employee.Name, employee.EmployeeDetail.Email);
+            Console.WriteLine("VVV Employee details Name: {0} ,  Email: {1}" , employee.Name, employee.EmployeeDetail.Email);
 
             empName = employee.Name;
             return empName;
@@ -151,8 +161,8 @@ namespace ManagementSystemCodeFirstWithExistingDB
 
             var newEmpDetails = new EmployeeDetail
             {
-                Email = "test2@gmail.com",
-                Phone = 123456789,
+                Email = "test3@gmail.com",
+                Phone = 323456789,
 
             };
             //empDetailsContext.Add
@@ -162,10 +172,10 @@ namespace ManagementSystemCodeFirstWithExistingDB
 
             var newEmp = new Employee
             {
-                Name = "New Empolyee add Test 2",
+                Name = "New Empolyee add Test 3",
 
                 //ForeignKey approach
-                RoleId = 2,
+                RoleId = 1,
 
                //Role = roleContextNew,
 
@@ -181,6 +191,44 @@ namespace ManagementSystemCodeFirstWithExistingDB
 
             Console.WriteLine("New Employee Creation Successful");
 
+        }
+
+
+        /*
+         Updating Employee by EmployeeId
+         */
+
+        public static void UpdateExistingEmployee()
+        {
+            var context = new ManagementSystemContext();
+
+            var employeeContext = context.Employees;
+            //Updating EmployeeDetails context
+            var empDetailsContext = context.EmployeeDetails;
+
+            /* var editEmpDetails = new EmployeeDetail
+             {
+                 Email = "changed3@gmail.com",
+                 Phone = 332356789,
+
+             };*/
+            var existingEmpDetails = empDetailsContext.Find(8);
+            existingEmpDetails.Email = "changed3@gmail.com";
+            existingEmpDetails.Phone = 332356789;
+
+            //Find Employee by Id
+            var existedEmployee = employeeContext.Find(8);
+
+            existedEmployee.Name = "Edited Empolyee add Test 3";
+            existedEmployee.RoleId = 2;
+            existedEmployee.EmployeeDetail = existingEmpDetails;
+            //employeeContext.AddOrUpdate(existedEmployee);
+
+            context.SaveChanges();
+            
+
+
+            Console.WriteLine("Updated Employee with ID:" + existedEmployee.Name);
         }
 
 
